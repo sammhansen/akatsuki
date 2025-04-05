@@ -1,0 +1,10 @@
+subfinder
+gau
+amass
+assetfinder
+waybackurls
+httpx
+
+notify-send
+paplay
+
