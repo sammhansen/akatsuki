@@ -1,20 +1,21 @@
 #!/bin/bash
 
-read -p "Enter target's name (working directory) : " TARGET_NAME
+read -r -p "Enter target's name (working directory) : " TARGET_NAME
 
 USERNAME=$(whoami)
-DIRECTORY_PATH=/home/$USERNAME/Sec/BugBounty/${TARGET_NAME}/enum
+AKATSUKI_PATH=/home/${USERNAME}/Sec/tools/akatsuki
+PROJECT_PATH=/home/${USERNAME}/Sec/BugBounty/${TARGET_NAME}/enum
 
-if ! [ -d $DIRECTORY_PATH ]; then
-	mkdir -p $DIRECTORY_PATH
+if ! [ -d ${PROJECT_PATH} ]; then
+	mkdir -p ${PROJECT_PATH}
 fi
 
 getvalidurl() {
 	while true; do
 
-		read -p "Enter target url with http* : " FULL_TARGET_URL
+		read -r -p "Enter target url with http* : " FULL_TARGET_URL
 
-		if [[ "$FULL_TARGET_URL" =~ ^https?:// ]]; then
+		if [[ "${FULL_TARGET_URL}" =~ ^https?:// ]]; then
 			TARGET_URL="${FULL_TARGET_URL#http://}"
 			TARGET_URL="${FULL_TARGET_URL#https://}"
 
@@ -42,21 +43,21 @@ enum() {
 		cat <<EOF
 		"Running subfinder"
 EOF
-		subfinder -d $TARGET_URL | tee $DIRECTORY_PATH/subfinder.txt
+		subfinder -d ${TARGET_URL} | tee ${PROJECT_PATH}/subfinder.txt
 	fi
 
 	if check_command "amass"; then
 		cat <<EOF
 		"Running amass"
 EOF
-		# amass enum -d $TARGET_URL -silent
+		# amass enum -d ${TARGET_URL} -silent
 	fi
 
 	if check_command "assetfinder"; then
 		cat <<EOF
 		"Running assetfinder"
 EOF
-		assetfinder -subs-only $TARGET_URL | tee $DIRECTORY_PATH/assetfinder.txt
+		assetfinder -subs-only ${TARGET_URL} | tee ${PROJECT_PATH}/assetfinder.txt
 	fi
 
 	if check_command "gau"; then
@@ -70,27 +71,27 @@ EOF
 		cat <<EOF
 		"Running waybackurls"
 EOF
-		# echo "${TARGET_URL}" | waybackurls >>$DIRECTORY_PATH/waybackurls.txt
+		# echo "${TARGET_URL}" | waybackurls >>${PROJECT_PATH}/waybackurls.txt
 	fi
 }
 
 allurls() {
-	cat $DIRECTORY_PATH/subfinder.txt $DIRECTORY_PATH/assetfinder.txt | sort | uniq >$DIRECTORY_PATH/allurls.txt
+	cat ${PROJECT_PATH}/subfinder.txt ${PROJECT_PATH}/assetfinder.txt | sort | uniq >${PROJECT_PATH}/allurls.txt
 }
 
 liveurls() {
-	httpx -l $DIRECTORY_PATH/allurls.txt -sc | awk '
-  {print $0 > "'"${DIRECTORY_PATH}"'/httpxall.txt"}
+	httpx -l ${PROJECT_PATH}/allurls.txt -sc | awk '
+  {print $0 > "'"${PROJECT_PATH}"'/httpxall.txt"}
   
-  /503/ {print $1 > "'"${DIRECTORY_PATH}"'/503.txt"}
-  /404/ {print $1 > "'"${DIRECTORY_PATH}"'/404.txt"}
-  /403/ {print $1 > "'"${DIRECTORY_PATH}"'/403.txt"}
-  /401/ {print $1 > "'"${DIRECTORY_PATH}"'/401.txt"}
-  /302/ {print $1 > "'"${DIRECTORY_PATH}"'/302.txt"}
-  /301/ {print $1 > "'"${DIRECTORY_PATH}"'/301.txt"}
-  /200/ {print $1 > "'"${DIRECTORY_PATH}"'/200.txt"}
+  /503/ {print $1 > "'"${PROJECT_PATH}"'/503.txt"}
+  /404/ {print $1 > "'"${PROJECT_PATH}"'/404.txt"}
+  /403/ {print $1 > "'"${PROJECT_PATH}"'/403.txt"}
+  /401/ {print $1 > "'"${PROJECT_PATH}"'/401.txt"}
+  /302/ {print $1 > "'"${PROJECT_PATH}"'/302.txt"}
+  /301/ {print $1 > "'"${PROJECT_PATH}"'/301.txt"}
+  /200/ {print $1 > "'"${PROJECT_PATH}"'/200.txt"}
   
-  !/404/ {print $1 > "'"${DIRECTORY_PATH}"'/liveurls.txt"} 
+  !/404/ {print $1 > "'"${PROJECT_PATH}"'/liveurls.txt"} 
 '
 }
 
@@ -98,4 +99,6 @@ enum
 allurls
 liveurls
 
-notify-send -i /home/$USERNAME/Sec/tools/akatsuki/assets/icons/logo.svg "Akatsuki" "Subdomain enumeration complete" && paplay /home/$USERNAME/Sec/tools/akatsuki/assets/sounds/alert.mp3
+echo ${AKATSUKI_PATH}
+
+notify-send -i ${AKATSUKI_PATH}/assets/icons/logo.svg "Akatsuki" "Subdomain enumeration complete" && paplay ${AKATSUKI_PATH}/assets/sounds/alert.mp3
